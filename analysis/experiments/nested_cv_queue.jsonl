@@ -1,0 +1,8 @@
+{"name": "cv_esm2_base", "base": "configs/esm2_base.json", "emb": "data/embeddings/esm2", "split": "data/graphpart_5fold.esm2.csv", "set": {}}
+{"name": "cv_esm2_boundary", "base": "configs/esm2_boundary.json", "emb": "data/embeddings/esm2", "split": "data/graphpart_5fold.esm2.csv", "set": {}}
+{"name": "cv_esm2_adapter", "base": "configs/esm2_adapter.json", "emb": "data/embeddings/esm2", "split": "data/graphpart_5fold.esm2.csv", "set": {}}
+{"name": "cv_esm2_full", "base": "configs/esm2_full.json", "emb": "data/embeddings/esm2", "split": "data/graphpart_5fold.esm2.csv", "set": {}}
+{"name": "cv_esmc6b_base", "base": "configs/esmc6b_base.json", "emb": "data/embeddings/esmc6b", "split": "data/graphpart_5fold.esmc6b.csv", "set": {}}
+{"name": "cv_esmc6b_boundary", "base": "configs/esmc6b_boundary.json", "emb": "data/embeddings/esmc6b", "split": "data/graphpart_5fold.esmc6b.csv", "set": {}}
+{"name": "cv_esmc6b_adapter", "base": "configs/esmc6b_adapter.json", "emb": "data/embeddings/esmc6b", "split": "data/graphpart_5fold.esmc6b.csv", "set": {}}
+{"name": "cv_esmc6b_full", "base": "configs/esmc6b_full.json", "emb": "data/embeddings/esmc6b", "split": "data/graphpart_5fold.esmc6b.csv", "set": {}}

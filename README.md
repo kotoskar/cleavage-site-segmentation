@@ -246,26 +246,13 @@ python3 tests/synthetic/generate_synthetic_data.py
 This release was smoke-tested end-to-end on CPU using exactly this synthetic
 data -- see "Verification" below for the commands and real output.
 
-## Re-verification of this release
+## Configuration fidelity
 
-The release tree was re-checked from the archived copy before publication: it is
-byte-identical to that copy, contains no Cyrillic text, no author names, emails,
-home-directory or mount paths, and the binary fixtures under
-`tests/synthetic/embeddings/` carry no embedded paths either. Every file in
-`configs/` was diffed key-by-key against the configuration actually used for the
-corresponding run reported in the paper; all eight match on every non-path key
-(`esm2_adapter.json` and `esm2_full.json`, for instance, differ only in
-`boundary_state_scale`, 0.0 vs 1.0, which is exactly what turns the boundary head
-off and on).
-
-Both entry points were re-run end to end on the synthetic data in this release:
-`run.py` (2 epochs, exit 0, loss decreasing, `test_metrics.json` written) and
-`analysis/experiments/train_nested_cell.py` for one (outer, inner) cell with each
-of the eight configs. That second check found and fixed a real defect: the
-configuration files here deliberately carry no machine-specific keys, but
-`src/train_loop_crf.py` reads `args.device` and `args.port` directly, so the
-nested-CV runner raised `AttributeError: 'Namespace' object has no attribute
-'device'` on every shipped config. It now supplies those two defaults itself.
+Every file in `configs/` was checked key by key against the configuration that
+produced the corresponding run reported in the paper; all eight agree on every
+key except the input/output paths. `esm2_adapter.json` and `esm2_full.json`,
+for instance, differ only in `boundary_state_scale` (0.0 vs 1.0), which is
+exactly what turns the boundary head off and on.
 
 ## Known issues found while preparing this release
 
@@ -318,13 +305,26 @@ where noted as a portability fix.
 
 5. **Repo-root auto-detection via `.git` (fixed).**
    `analysis/experiments/rescore_nested_cv_corrected.py` and
-   `analysis/errors/src/error_analysis.py` located the repo root by walking up
-   to the nearest ancestor containing a `.git` directory. Since this
-   anonymized release is deliberately not a git repository, that lookup would
-   raise `StopIteration`. Both now instead look for the nearest ancestor
-   containing `run.py` (the project's actual entry point).
+   `analysis/errors/src/error_analysis.py` located the project root by walking
+   up to the nearest ancestor containing a `.git` directory, which raises
+   `StopIteration` whenever the code is used outside a git checkout (an
+   extracted archive, a vendored copy). Both now look for the nearest ancestor
+   containing `run.py`, the project's actual entry point.
 
-7. **`--set` in `analysis/experiments/train_nested_cell.py` silently drops
+6. **Hardcoded absolute paths (fixed, no behavior change for a fresh checkout).**
+   A handful of scripts (`src/train_loop_crf.py`, `infer.py`,
+   `prepare_data/*.py`) carried absolute defaults from the machine they were
+   developed on. These are now relative, repo-local defaults; every affected
+   flag remains fully overridable from the command line as before.
+
+7. **Missing runtime keys in `configs/*.json` (fixed).** The configuration
+   files here carry architecture and hyper-parameters only, while
+   `src/train_loop_crf.py` reads `args.device` and `args.port` directly, so
+   `analysis/experiments/train_nested_cell.py` raised `AttributeError:
+   'Namespace' object has no attribute 'device'` on every shipped config. The
+   runner now supplies both defaults itself.
+
+8. **`--set` in `analysis/experiments/train_nested_cell.py` silently drops
    overrides when the flag is repeated (not fixed).** The argument is declared
    with `nargs="*"`, so a second `--set` *replaces* the first rather than
    appending to it:
@@ -342,39 +342,26 @@ where noted as a portability fix.
    script that produced already-reported results; the correct usage is
    documented here instead. Verified by running one cell both ways.
 
-6. **Hardcoded absolute paths (fixed, no behavior change for a fresh checkout).**
-   A handful of scripts (`src/train_loop_crf.py`, `infer.py`,
-   `prepare_data/*.py`) had machine-specific absolute defaults pointing at a
-   cluster mount and a home directory. These are
-   now relative, repo-local defaults; every affected flag remains fully
-   overridable from the command line as before.
 
 ## Anonymization
 
-Machine-identifying strings (author names, emails, a cluster storage mount
-path, personal home-directory paths, git remote URLs, and Russian-language
-code comments that would narrow authorship) were located and removed/replaced
-throughout this release. See the accompanying report for the full list of
-what was found and how each was handled; the tree was re-scanned for all of
-the above (plus any non-ASCII/Cyrillic text) after every edit and is clean.
+This is a code-only release prepared for double-blind review. It carries no
+author, affiliation, or host-machine information, and no experiment outputs or
+real data. The tree was re-scanned after every edit and again before
+publication.
 
 ## License
 
-The source repository's `LICENSE` (BSD-3-Clause) is not included in this
-release: it names an individual copyright holder (from the upstream
-DeepPeptide project this code extends), and per the anonymization
-instructions for this release, a license file is only carried over if it is a
-standard permissive license with **no name** in it. A LICENSE should be
-re-added at camera-ready / de-anonymization time.
+The upstream DeepPeptide project is BSD-3-Clause licensed. Its `LICENSE` file
+names an individual copyright holder, so it is omitted here and will be
+restored at camera-ready.
 
 ## Verification (this release)
 
-Environment: `.venv` at the repository root had no packages installed
-(`torch`, `pandas`, `numpy` etc. were all absent); the system `python3`
-(3.10.19) had `torch==2.10.0` (CPU-only build, `torch.cuda.is_available()`
-is `False`), `pandas==2.3.3`, `numpy==2.2.6`, `tqdm==4.67.1` already
-installed, and was used for verification instead. `aim` was not installed and
-was not needed, given fix (4) above.
+Environment: Python 3.10 with `torch==2.10.0` (CPU-only build,
+`torch.cuda.is_available()` is `False`), `pandas==2.3.3`, `numpy==2.2.6`,
+`tqdm==4.67.1`. `aim` was not installed and was not needed, given fix (4)
+above.
 
 ```bash
 PYTHONPATH=. python3 run.py \
@@ -395,7 +382,8 @@ for the model to learn from in 2 epochs on 24 sequences; this run demonstrates
 that the training/eval *plumbing* works end to end, not that the architecture
 learns anything from this data. `src/infer_and_score.py` was separately run
 against the resulting checkpoint (`--num_workers 0`) and reproduced metrics
-computation end to end. One full nested-CV cell
-(`analysis/experiments/train_nested_cell.py --outer 0 --inner 1`) was also run
-against the same synthetic data and produced a `cell_result.json`, confirming
-the nested-CV driver path is not merely documented but actually runs.
+computation end to end. One nested-CV cell
+(`analysis/experiments/train_nested_cell.py --outer 0 --inner 1`) was run
+against the same synthetic data with each of the eight files in `configs/`,
+each producing a `cell_result.json`, confirming the nested-CV path is not
+merely documented but actually runs.

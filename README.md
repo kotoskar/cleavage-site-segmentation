@@ -155,7 +155,8 @@ are verified to run end-to-end against the synthetic dataset below (see
 
 ## The experiment grid
 
-All results in the paper come from one grid of eight configurations:
+All results in the paper come from one grid of eight configurations, plus a ninth run that
+reproduces the original 2022-release setting on the same protocol:
 
 |                        | boundary head | input adapter | config |
 |------------------------|:-------------:|:-------------:|--------|
@@ -167,8 +168,18 @@ All results in the paper come from one grid of eight configurations:
 | ESM-C 6B, + boundary   | yes           | --            | `configs/esmc6b_boundary.json` |
 | ESM-C 6B, + adapter    | --            | yes           | `configs/esmc6b_adapter.json` |
 | ESM-C 6B, + both       | yes           | yes           | `configs/esmc6b_full.json` |
+| ESM-2, base, 2022 data | --            | --            | `configs/esm2_base_2022.json` |
 
-Each configuration is 20 nested-CV cells, so the grid is 160 trainings:
+The last row is the reproduction run: the same base architecture and the same nested
+cross-validation, on the 2022 UniProtKB/Swiss-Prot release and its original homology split
+rather than the 2026 rebuild, so that our numbers can be put next to the ones the original
+work published.
+
+Every configuration trains in fp32 (`"amp": false`). Mixed precision is supported by the
+training loop but is not used for any reported result, so that the comparison between
+configurations is not confounded by numerics.
+
+Each configuration is 20 nested-CV cells, so the grid is 180 trainings:
 
 ```bash
 bash analysis/experiments/run_full_grid.sh          # sequential
@@ -213,21 +224,23 @@ Two consequences worth knowing when reading checkpoints:
 
 ### One inconsistency in the published runs
 
-`configs/esm2_base.json` has `"amp": true`; the other seven have `"amp": false`.
-The ESM-2 baseline was trained first and mixed precision was switched off for
-everything afterwards. The configs here reproduce the runs as they were actually
-executed rather than silently harmonising them.
+Every config here has `"amp": false`, and so did every run behind the reported
+numbers. An earlier version of the ESM-2 baseline was trained with bf16 autocast,
+before mixed precision was switched off for the rest of the grid, and the
+baseline was retrained in fp32 rather than left as the odd one out. The
+difference between the two is measured rather than assumed: under the same
+protocol and the same corrected matcher, the bf16 baseline scores
+0.5725 +/- 0.0253 F1 at +-3 against 0.5761 +/- 0.0294 for the fp32 baseline the
+paper reports, a gap of 0.0036 with fp32 the higher of the two.
 
-The autocast region covers the whole forward pass, CRF included (see
-`train_loop_crf.py`), so under `amp: true` the CRF's log-space forward algorithm
-runs in bfloat16. bf16 carries the same exponent range as fp32, which is what
-that algorithm mainly depends on, but only about three decimal digits of
-mantissa. We would expect the effect to be small; we have not measured it. Note
-also that `run_dataloader` carries a nan-guard that skips the optimizer step on a
-non-finite loss, so numerical trouble in this region is not purely hypothetical.
-
-To make the grid strictly uniform, set `amp` to `false` in that one config --
-but the baseline will then no longer be the run the paper reports.
+The reason to care is that the autocast region covered the whole forward pass,
+CRF included (see `train_loop_crf.py`), so under `amp: true` the CRF's log-space
+forward algorithm ran in bfloat16. bf16 carries the same exponent range as fp32,
+which is what that algorithm mainly depends on, but only about three decimal
+digits of mantissa. `run_dataloader` also carries a nan-guard that skips the
+optimizer step on a non-finite loss, so numerical trouble in this region is not
+purely hypothetical. Mixed precision remains available in the training loop; it
+is simply not used for anything reported.
 
 ## Smoke test / trying it without real data
 

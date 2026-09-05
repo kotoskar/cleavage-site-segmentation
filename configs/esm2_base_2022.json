@@ -1,0 +1,22 @@
+{
+  "embedding": "precomputed",
+  "embedding_dim": 1280,
+  "model": "lstmcnncrf",
+  "epochs": 100,
+  "batch_size": 48,
+  "lr": 0.0001,
+  "dropout": 0.1,
+  "conv_dropout": 0.1,
+  "kernel_size": 3,
+  "num_filters": 32,
+  "hidden_size": 64,
+  "feature_extractor": "LSTMCNN",
+  "homo_only": false,
+  "amp": false,
+  "amp_dtype": "bf16",
+  "label_type": "multistate_with_propeptides",
+  "seed": 42,
+  "embeddings_dir": "data/embeddings/esm2",
+  "data_file": "data/labeled_sequences_2022.csv",
+  "partitioning_file": "data/graphpart_assignments_2022.csv"
+}

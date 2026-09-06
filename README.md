@@ -286,10 +286,17 @@ between 26 and 36 epochs past its own selected checkpoint, so the selection had
 settled well before training stopped. `--epochs` prints this. No other run has
 an early-stopped cell.
 
-That same run has original-matcher records for only part of its grid, so it
-carries no matcher-comparison aggregate and is left out of that one calculation.
-Its corrected-matcher scores, which are what the paper reports, cover all twenty
-cells and are checked against the per-cell records by `--cells`.
+Both readings of every cell now come from the segments that cell saved:
+`tolerance_metrics.json` under the corrected matcher and `original_metrics.json`
+under the upstream one. That is what lets the early-stopped cells carry an
+original-matcher number at all, and it puts every run in the matcher comparison.
+Where a cell also recorded an original-matcher F1 during training, `--matcher`
+checks the reconstruction against it: 174 of the 175 such cells agree to 1.2e-03
+at worst. The exception is `5cv_esmc6b_adapter_only/outer1_inner3`, which
+disagrees by 0.026 — its saved checkpoint does not reproduce what its training
+run recorded, and a separate re-scoring that re-ran inference on a GPU landed on
+the same value this one does, so the disagreement is with the record rather than
+between the two reconstructions.
 
 And an aggregate spread is always taken across the five outer folds rather than
 across all twenty cells, since four models sharing an outer fold share a test

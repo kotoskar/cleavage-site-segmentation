@@ -112,50 +112,60 @@ def effects():
 
 
 def matcher():
+    """What the corrected matcher changes, per run, and how well it checks out.
+
+    Each cell ships both readings of its own test fold: tolerance_metrics.json
+    from the corrected matcher and original_metrics.json from the upstream one,
+    both computed over the same decoded segments. A cell that ran to the end of
+    training also recorded an original-matcher F1 at the time, which is what the
+    reconstruction is checked against.
+    """
     print("\nWhat the corrected matcher changes, per run")
     shifts = []
-    for _, add, run in ROWS:
-        p = os.path.join(HERE, run, "nested_cv_summary_corrected.json")
-        if not os.path.exists(p):
+    for _, _add, run in ROWS + [("", "", "5cv_baseline_esm2_2022")]:
+        by_outer = {}
+        for cell in sorted(glob.glob(os.path.join(HERE, run, "outer*_inner*"))):
+            f = os.path.join(cell, "original_metrics.json")
+            if not os.path.exists(f):
+                continue
+            outer = int(os.path.basename(cell).split("_")[0][len("outer"):])
+            by_outer.setdefault(outer, []).append(json.load(open(f))["tol3_all_f1"])
+        if len(by_outer) != 5:
             continue
-        d = json.load(open(p))
-        c = d.get("cv_f1_all_mean_corrected", d.get("cv_corr_all_f1_mean"))
-        o = d.get("cv_f1_all_mean_original", d.get("cv_orig_all_f1_mean"))
-        if c is None or o is None:
-            continue
+        o = st.mean([st.mean(v) for _, v in sorted(by_outer.items())])
+        c = stored(run, 3, "f1")[0]
         shifts.append(c - o)
         print(f"  {run:26s} corrected {c:.4f}  original {o:.4f}  shift {c - o:+.4f}")
     if shifts:
-        print(f"  range over the {len(shifts)} runs whose every cell carries both matchers: "
-              f"{min(shifts):+.4f} to {max(shifts):+.4f}")
-        print("  (the ESM-C adapter run is absent here: 9 of its 20 cells were rescored "
-              "under the original matcher and one of those does not reproduce the F1 its "
-              "cell recorded at training time, so the run has no trustworthy "
-              "original-matcher aggregate. Its corrected numbers do not depend on that "
-              "rescoring: they come from the per-cell records checked by --cells.)")
+        print(f"  range over the {len(shifts)} runs: {min(shifts):+.4f} to {max(shifts):+.4f}")
 
-    # the per-cell agreement check: the rescored original matcher against the F1
-    # each cell recorded at training time
-    diffs = []
+    # every cell that recorded an original-matcher F1 at training time, against
+    # the same matcher run over the segments that cell saved
+    diffs, outliers, no_record = [], [], 0
     for run in [r[2] for r in ROWS] + ["5cv_baseline_esm2_2022"]:
         for cell in sorted(glob.glob(os.path.join(HERE, run, "outer*_inner*"))):
-            rec = os.path.join(cell, "cell_result_corrected.json")
-            alt = os.path.join(cell, "corrected_metrics.json")
-            src = rec if os.path.exists(rec) else (alt if os.path.exists(alt) else None)
-            if not src:
-                continue
-            s = json.load(open(src))
-            if run == "5cv_esmc6b_adapter_only":
-                continue          # see the note above: rescoring incomplete for this run
-            a = s.get("test_orig_all_f1", s.get("orig_all_f1"))
+            f = os.path.join(cell, "original_metrics.json")
             rec = os.path.join(cell, "cell_result.json")
-            b = json.load(open(rec)).get("test_f1_all") if os.path.exists(rec) else None
-            if a is not None and b is not None:
-                diffs.append(abs(a - b))
-    if diffs:
-        print(f"  rescored original matcher against the F1 each cell recorded at training "
-              f"time, over {len(diffs)} cells: worst {max(diffs):.1e}, median "
-              f"{st.median(diffs):.1e}")
+            if not os.path.exists(f):
+                continue
+            got = json.load(open(f))["tol3_all_f1"]
+            recorded = json.load(open(rec)).get("test_f1_all") if os.path.exists(rec) else None
+            if recorded is None:
+                no_record += 1
+                continue
+            d = abs(got - recorded)
+            diffs.append(d)
+            if d > 1e-2:
+                outliers.append((run, os.path.basename(cell), got, recorded, d))
+    ok = [d for d in diffs if d <= 1e-2]
+    print(f"  reconstruction against the F1 each cell recorded at training time: "
+          f"{len(diffs)} cells, {len(ok)} agree to {max(ok):.1e} at worst and "
+          f"{st.median(ok):.1e} at the median")
+    for run, name, got, recorded, d in outliers:
+        print(f"    {run} {name} disagrees: {got:.4f} against {recorded:.4f}, {d:.4f}. "
+              f"Its saved checkpoint does not reproduce what its training run recorded.")
+    if no_record:
+        print(f"  {no_record} cells never recorded one and are scored from their segments only")
 
 
 def cells():

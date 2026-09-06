@@ -1,0 +1,6 @@
+{
+ "tol3_all_precision": 0.683082,
+ "tol3_all_recall": 0.671613,
+ "tol3_all_f1": 0.677299,
+ "matcher": "original"
+}

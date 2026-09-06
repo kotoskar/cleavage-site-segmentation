@@ -254,10 +254,17 @@ python3 results/reproduce_paper_numbers.py
 ```
 
 prints Table 1 in full, the paired-by-fold effects and their sign counts, the
-interaction contrast, what the corrected matcher changes per run, the per-fold
-base scores behind the fold-exchangeability argument, and the 2022-release
-reproduction. Sections can be run individually (`--table1`, `--effects`,
-`--matcher`, `--folds`, `--reproduction`).
+interaction contrast, the gap to the base at every tolerance, the tolerance-free
+IoU sweep, the paired placement comparison and what each block does to the
+segment count, what the corrected matcher changes per run, the per-fold base
+scores behind the fold-exchangeability argument, and the 2022-release
+reproduction. Sections run individually with `--table1`, `--effects`,
+`--tolerance`, `--overlap`, `--sites`, `--matcher`, `--folds`,
+`--reproduction`.
+
+The set is deliberately wider than any single write-up quotes, so a reader
+holding a different version of this work can still find the number in front of
+them here.
 
 Two things in `results/` are deliberately incomplete, and the script says so
 where it matters. The ESM-C adapter configuration has original-matcher records

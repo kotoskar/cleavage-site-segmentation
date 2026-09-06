@@ -155,6 +155,66 @@ def matcher():
               f"{st.median(diffs):.1e}")
 
 
+def tolerance():
+    """Gaps to the ESM-2 base at every tolerance, and how they grow.
+
+    The headline number is the +-3 one, but a design loop reads the other end of
+    this curve, so both ends are printed with the paired spread.
+    """
+    print("\nGap to the ESM-2 base at each tolerance, paired by outer fold")
+    print(f"{'configuration':34s} {'+-3':>16s} {'+-2':>16s} {'+-1':>16s} {'exact':>16s}")
+    for emb, add, run in ROWS:
+        if run == BASE2:
+            continue
+        cells = []
+        for tol in (3, 2, 1, 0):
+            d = [a - b for a, b in zip(per_outer(run, tol), per_outer(BASE2, tol))]
+            m, sd = ms(d)
+            cells.append(f"{m:+.4f}+-{sd:.4f}")
+        print(f"{emb + ', ' + add:34s} " + " ".join(f"{c:>16s}" for c in cells))
+    print("  growth is the last column minus the first; both papers quote it")
+
+
+def overlap():
+    """The tolerance-free suite: what survives when the acceptance window goes."""
+    path = os.path.join(HERE, "suites", "segment_quality_cv_anyoverlap.json")
+    if not os.path.exists(path):
+        print("\n(no tolerance-free suite in this release)")
+        return
+    d = json.load(open(path))
+    base = d["baseline"]
+    print(f"\nSegment F1 under IoU matching, against {base}")
+    thr = [t for t in d["iou_thresholds"]]
+    head = " ".join(f"{('any' if t < 1e-6 else t):>9}" for t in thr)
+    print(f"{'model':34s} {head}")
+    for name, entry in d["models"].items():
+        m = entry.get("metrics", {})
+        row = []
+        for t in thr:
+            key = f"all_f1_iou{'1e-09' if t < 1e-6 else t}"
+            row.append(f"{m[key]['mean']:9.4f}" if key in m else "        -")
+        print(f"{name:34s} " + " ".join(row))
+    print("  the leftmost column asks only for one shared residue: that is the")
+    print("  detection control, and it is where the additions buy nothing")
+
+
+def sites():
+    """Which end of a segment each block fixes."""
+    path = os.path.join(HERE, "suites", "boundary_error_cv_fp32base.json")
+    if not os.path.exists(path):
+        return
+    d = json.load(open(path))
+    print(f"\nPaired placement, against {d['baseline']}")
+    for name, v in d["variants"].items():
+        p_, l = v["paired"], v["localisation"]
+        print(f"  {name:26s} paired instances {p_['n']:6d}   exact share "
+              f"{p_['exact_base']:.4f} -> {p_['exact_variant']:.4f}")
+        print(f"  {'':26s} base localises {l['n_localised_base']}, this run "
+              f"{l['n_localised_variant']} ({l['n_localised_variant'] - l['n_localised_base']:+d})")
+    print("  counts are segment-instances: each true segment is scored by the four")
+    print("  cells that share its outer fold, so divide by four for distinct segments")
+
+
 def folds():
     print("\nWhy the folds are not exchangeable")
     v = per_outer(BASE2, 3)
@@ -180,12 +240,14 @@ def reproduction():
 
 def main():
     ap = argparse.ArgumentParser()
-    for name in ("table1", "effects", "matcher", "folds", "reproduction"):
+    for name in ("table1", "effects", "tolerance", "overlap", "sites", "matcher",
+                 "folds", "reproduction"):
         ap.add_argument(f"--{name}", action="store_true")
     args = ap.parse_args()
-    chosen = [n for n in ("table1", "effects", "matcher", "folds", "reproduction")
-              if getattr(args, n)]
-    for name in (chosen or ["table1", "effects", "matcher", "folds", "reproduction"]):
+    order = ["table1", "effects", "tolerance", "overlap", "sites", "matcher",
+             "folds", "reproduction"]
+    chosen = [n for n in order if getattr(args, n, False)]
+    for name in (chosen or order):
         globals()[name]()
 
 

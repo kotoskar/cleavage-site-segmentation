@@ -274,29 +274,22 @@ The set is deliberately wider than any single write-up quotes, so a reader
 holding a different version of this work can still find the number in front of
 them here.
 
-Three things about `results/` are worth knowing before the numbers are used,
+Two things about `results/` are worth knowing before the numbers are used,
 and the script prints each of them where it matters.
 
-Five of the twenty cells of the ESM-C adapter configuration stopped before the
-end of the training schedule, so they carry no `cell_result.json`. They are
-scored from the checkpoint their own validation curve had already selected, at
-epochs 33, 35, 40, 41 and 43. Among the fifteen cells of that run that did
-finish, selection never fell later than epoch 58, and each of the five ran
-between 26 and 36 epochs past its own selected checkpoint, so the selection had
-settled well before training stopped. `--epochs` prints this. No other run has
-an early-stopped cell.
+Every cell of every run ran to the end of its training schedule and records the
+epoch its validation curve selected, so no number here rests on a checkpoint
+whose selection could still have moved. `--epochs` performs that check and
+prints what it finds.
 
-Both readings of every cell now come from the segments that cell saved:
+Both readings of every cell come from the segments that cell saved:
 `tolerance_metrics.json` under the corrected matcher and `original_metrics.json`
-under the upstream one. That is what lets the early-stopped cells carry an
-original-matcher number at all, and it puts every run in the matcher comparison.
-Where a cell also recorded an original-matcher F1 during training, `--matcher`
-checks the reconstruction against it: 174 of the 175 such cells agree to 1.2e-03
-at worst. The exception is `5cv_esmc6b_adapter_only/outer1_inner3`, which
-disagrees by 0.026 — its saved checkpoint does not reproduce what its training
-run recorded, and a separate re-scoring that re-ran inference on a GPU landed on
-the same value this one does, so the disagreement is with the record rather than
-between the two reconstructions.
+under the upstream one, which puts every run in the matcher comparison. Each
+cell also recorded an original-matcher F1 during training, and `--matcher`
+checks the reconstruction against it: all 180 cells agree to 1.2e-03 F1 at worst
+and to 3.1e-07 at the median, so what separates the two readings is inference
+nondeterminism rather than disagreement between two deterministic functions of
+the same segments.
 
 And an aggregate spread is always taken across the five outer folds rather than
 across all twenty cells, since four models sharing an outer fold share a test

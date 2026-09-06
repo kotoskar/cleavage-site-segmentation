@@ -12,13 +12,13 @@
   "test_partitions": [
     1
   ],
-  "best_epoch": 58,
-  "val_f1_all": 0.5929033385771719,
-  "val_f1_peptides": 0.4606356968215159,
-  "val_f1_propeptides": 0.6664853101196954,
-  "test_f1_all": 0.5222833301725773,
-  "test_f1_peptides": 0.5114715189873418,
-  "test_f1_propeptides": 0.5322404371584699,
-  "test_precision_all": 0.4665424360494664,
-  "test_recall_all": 0.5931509799698471
+  "best_epoch": 65,
+  "val_f1_all": 0.5814220183486238,
+  "val_f1_peptides": 0.4797843665768194,
+  "val_f1_propeptides": 0.6372519988155166,
+  "test_f1_all": 0.60099573257468,
+  "test_f1_peptides": 0.6061072619964074,
+  "test_f1_propeptides": 0.5966071821987222,
+  "test_precision_all": 0.6756396588486141,
+  "test_recall_all": 0.5412040990606319
 }

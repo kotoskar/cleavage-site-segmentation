@@ -205,14 +205,15 @@ def epochs():
     """Which cells stopped before the end of the schedule, and what that cost.
 
     A cell that ran to the end records its selected epoch in cell_result.json.
-    Five cells of the ESM-C adapter run stopped early and have no such record,
-    so they are scored from the checkpoint their validation curve had already
-    selected, which valid_metrics.json reports. What matters is whether the
-    selection could still have moved: this prints each early-stopped cell's
-    selected epoch against the latest selection among the cells of the same run
-    that did finish.
+    Cells that stopped early carry no such record and are scored from the
+    checkpoint their validation curve had already selected, which
+    valid_metrics.json reports; this prints each one against the latest
+    selection among the cells of the same run that did finish. Every cell of
+    every run released here now carries a record, so this section is empty, and
+    it stays in the script so that the check is visible rather than assumed.
     """
     print("\nEarly-stopped cells, and where selection had settled")
+    any_short = False
     for _, _add, run in ROWS + [("", "", "5cv_baseline_esm2_2022")]:
         finished, short = [], []
         for cell in sorted(glob.glob(os.path.join(HERE, run, "outer*_inner*"))):
@@ -224,6 +225,7 @@ def epochs():
                 short.append((os.path.basename(cell), epoch))
         if not short:
             continue
+        any_short = True
         latest = max(e for e in finished if e is not None)
         print(f"  {run}: {len(short)} of {len(short) + len(finished)} cells stopped early")
         for name, epoch in short:
@@ -231,6 +233,8 @@ def epochs():
         print(f"    the {len(finished)} cells of this run that finished selected at "
               f"epoch {min(e for e in finished if e is not None)}-{latest}, so no finished "
               f"cell of it ever improved after epoch {latest}")
+    if not any_short:
+        print("  none: every cell of every run ran to the end of its schedule")
 
 
 def tolerance():

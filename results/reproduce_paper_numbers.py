@@ -128,8 +128,11 @@ def matcher():
     if shifts:
         print(f"  range over the {len(shifts)} runs whose every cell carries both matchers: "
               f"{min(shifts):+.4f} to {max(shifts):+.4f}")
-        print("  (the ESM-C adapter run is absent here: only some of its cells were scored "
-              "under the original matcher, so it has no comparable aggregate)")
+        print("  (the ESM-C adapter run is absent here: 9 of its 20 cells were rescored "
+              "under the original matcher and one of those does not reproduce the F1 its "
+              "cell recorded at training time, so the run has no trustworthy "
+              "original-matcher aggregate. Its corrected numbers do not depend on that "
+              "rescoring: they come from the per-cell records checked by --cells.)")
 
     # the per-cell agreement check: the rescored original matcher against the F1
     # each cell recorded at training time
@@ -143,7 +146,7 @@ def matcher():
                 continue
             s = json.load(open(src))
             if run == "5cv_esmc6b_adapter_only":
-                continue          # incomplete original-matcher records, see above
+                continue          # see the note above: rescoring incomplete for this run
             a = s.get("test_orig_all_f1", s.get("orig_all_f1"))
             rec = os.path.join(cell, "cell_result.json")
             b = json.load(open(rec)).get("test_f1_all") if os.path.exists(rec) else None
@@ -153,6 +156,39 @@ def matcher():
         print(f"  rescored original matcher against the F1 each cell recorded at training "
               f"time, over {len(diffs)} cells: worst {max(diffs):.1e}, median "
               f"{st.median(diffs):.1e}")
+
+
+def cells():
+    """Rebuild each row of Table 1 from the individual cells behind it.
+
+    Every cell carries tolerance_metrics.json, which holds the corrected
+    matcher's counts on that cell's own test fold at each tolerance. Averaging
+    the four inner cells of an outer fold and then the five outer folds has to
+    give back what the run's aggregate file publishes. This covers all 20 cells
+    of every run, including the ESM-C adapter run, whose GPU rescoring under the
+    original matcher is only partial.
+    """
+    print("\nTable 1 rebuilt from the individual cells")
+    worst, n_cells, n_runs, short = 0.0, 0, 0, []
+    for _, _add, run in ROWS + [("", "", "5cv_baseline_esm2_2022")]:
+        by_outer = {}
+        for cell in sorted(glob.glob(os.path.join(HERE, run, "outer*_inner*"))):
+            f = os.path.join(cell, "tolerance_metrics.json")
+            if not os.path.exists(f):
+                continue
+            outer = int(os.path.basename(cell).split("_")[0][len("outer"):])
+            by_outer.setdefault(outer, []).append(json.load(open(f))["tol3_all_f1"])
+            n_cells += 1
+        if len(by_outer) != 5 or any(len(v) != 4 for v in by_outer.values()):
+            short.append(run)
+            continue
+        rebuilt = st.mean([st.mean(v) for _, v in sorted(by_outer.items())])
+        worst = max(worst, abs(rebuilt - stored(run, 3, "f1")[0]))
+        n_runs += 1
+    print(f"  {n_cells} cells over {n_runs} runs, worst disagreement with the published "
+          f"aggregate: {worst:.1e}")
+    if short:
+        print(f"  not rebuilt, fewer than 5x4 cells present: {', '.join(short)}")
 
 
 def tolerance():
@@ -241,11 +277,11 @@ def reproduction():
 def main():
     ap = argparse.ArgumentParser()
     for name in ("table1", "effects", "tolerance", "overlap", "sites", "matcher",
-                 "folds", "reproduction"):
+                 "cells", "folds", "reproduction"):
         ap.add_argument(f"--{name}", action="store_true")
     args = ap.parse_args()
     order = ["table1", "effects", "tolerance", "overlap", "sites", "matcher",
-             "folds", "reproduction"]
+             "cells", "folds", "reproduction"]
     chosen = [n for n in order if getattr(args, n, False)]
     for name in (chosen or order):
         globals()[name]()

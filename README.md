@@ -256,11 +256,19 @@ python3 results/reproduce_paper_numbers.py
 prints Table 1 in full, the paired-by-fold effects and their sign counts, the
 interaction contrast, the gap to the base at every tolerance, the tolerance-free
 IoU sweep, the paired placement comparison and what each block does to the
-segment count, what the corrected matcher changes per run, the per-fold base
-scores behind the fold-exchangeability argument, and the 2022-release
-reproduction. Sections run individually with `--table1`, `--effects`,
-`--tolerance`, `--overlap`, `--sites`, `--matcher`, `--folds`,
-`--reproduction`.
+segment count, what the corrected matcher changes per run, a rebuild of Table 1
+from the individual cells, the per-fold base scores behind the
+fold-exchangeability argument, and the 2022-release reproduction. Sections run
+individually with `--table1`, `--effects`, `--tolerance`, `--overlap`,
+`--sites`, `--matcher`, `--cells`, `--folds`, `--reproduction`.
+
+Each cell directory carries `tolerance_metrics.json`, the corrected matcher's
+counts on that cell's own test fold at every tolerance from exact to +-3.
+`--cells` averages the four inner cells of an outer fold and then the five outer
+folds, and checks the result against the aggregate each run publishes: over the
+180 cells of the nine runs the worst disagreement is 5e-07. Every number in
+Table 1 therefore rests on per-cell records that ship with this repository,
+rather than on an aggregate the reader has to take on trust.
 
 The set is deliberately wider than any single write-up quotes, so a reader
 holding a different version of this work can still find the number in front of

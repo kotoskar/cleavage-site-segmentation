@@ -274,13 +274,26 @@ The set is deliberately wider than any single write-up quotes, so a reader
 holding a different version of this work can still find the number in front of
 them here.
 
-Two things in `results/` are deliberately incomplete, and the script says so
-where it matters. The ESM-C adapter configuration has original-matcher records
-for only part of its grid, so it carries no matcher-comparison aggregate and is
-excluded from that one calculation; its corrected-matcher scores, which are what
-the paper reports, are complete. And the aggregate spread is always across the
-five outer folds rather than across all twenty cells, since four models sharing
-an outer fold share a test set.
+Three things about `results/` are worth knowing before the numbers are used,
+and the script prints each of them where it matters.
+
+Five of the twenty cells of the ESM-C adapter configuration stopped before the
+end of the training schedule, so they carry no `cell_result.json`. They are
+scored from the checkpoint their own validation curve had already selected, at
+epochs 33, 35, 40, 41 and 43. Among the fifteen cells of that run that did
+finish, selection never fell later than epoch 58, and each of the five ran
+between 26 and 36 epochs past its own selected checkpoint, so the selection had
+settled well before training stopped. `--epochs` prints this. No other run has
+an early-stopped cell.
+
+That same run has original-matcher records for only part of its grid, so it
+carries no matcher-comparison aggregate and is left out of that one calculation.
+Its corrected-matcher scores, which are what the paper reports, cover all twenty
+cells and are checked against the per-cell records by `--cells`.
+
+And an aggregate spread is always taken across the five outer folds rather than
+across all twenty cells, since four models sharing an outer fold share a test
+set.
 
 Training from scratch is a different matter: one cell is about 10 GPU-hours, a
 configuration 200, and the full grid roughly 1,600. The commands are above.

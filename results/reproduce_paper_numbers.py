@@ -191,6 +191,38 @@ def cells():
         print(f"  not rebuilt, fewer than 5x4 cells present: {', '.join(short)}")
 
 
+def epochs():
+    """Which cells stopped before the end of the schedule, and what that cost.
+
+    A cell that ran to the end records its selected epoch in cell_result.json.
+    Five cells of the ESM-C adapter run stopped early and have no such record,
+    so they are scored from the checkpoint their validation curve had already
+    selected, which valid_metrics.json reports. What matters is whether the
+    selection could still have moved: this prints each early-stopped cell's
+    selected epoch against the latest selection among the cells of the same run
+    that did finish.
+    """
+    print("\nEarly-stopped cells, and where selection had settled")
+    for _, _add, run in ROWS + [("", "", "5cv_baseline_esm2_2022")]:
+        finished, short = [], []
+        for cell in sorted(glob.glob(os.path.join(HERE, run, "outer*_inner*"))):
+            v = os.path.join(cell, "valid_metrics.json")
+            epoch = json.load(open(v)).get("epoch") if os.path.exists(v) else None
+            if os.path.exists(os.path.join(cell, "cell_result.json")):
+                finished.append(epoch)
+            else:
+                short.append((os.path.basename(cell), epoch))
+        if not short:
+            continue
+        latest = max(e for e in finished if e is not None)
+        print(f"  {run}: {len(short)} of {len(short) + len(finished)} cells stopped early")
+        for name, epoch in short:
+            print(f"    {name:16s} checkpoint selected at epoch {epoch}")
+        print(f"    the {len(finished)} cells of this run that finished selected at "
+              f"epoch {min(e for e in finished if e is not None)}-{latest}, so no finished "
+              f"cell of it ever improved after epoch {latest}")
+
+
 def tolerance():
     """Gaps to the ESM-2 base at every tolerance, and how they grow.
 
@@ -277,11 +309,11 @@ def reproduction():
 def main():
     ap = argparse.ArgumentParser()
     for name in ("table1", "effects", "tolerance", "overlap", "sites", "matcher",
-                 "cells", "folds", "reproduction"):
+                 "cells", "epochs", "folds", "reproduction"):
         ap.add_argument(f"--{name}", action="store_true")
     args = ap.parse_args()
     order = ["table1", "effects", "tolerance", "overlap", "sites", "matcher",
-             "cells", "folds", "reproduction"]
+             "cells", "epochs", "folds", "reproduction"]
     chosen = [n for n in order if getattr(args, n, False)]
     for name in (chosen or order):
         globals()[name]()

@@ -1,0 +1,12 @@
+{
+  "precision peptides": 0.588065447545717,
+  "recall peptides": 0.474010861132661,
+  "f1 peptides": 0.5249140893470791,
+  "precision propeptides": 0.5582635186595583,
+  "recall propeptides": 0.5280979827089337,
+  "f1 propeptides": 0.542761940022214,
+  "precision all": 0.5714285714285714,
+  "recall all": 0.5020545386626821,
+  "f1 all": 0.5344999005766554,
+  "epoch": 91
+}

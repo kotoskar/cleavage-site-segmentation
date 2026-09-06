@@ -1,0 +1,24 @@
+{
+  "name": "5cv_baseline_esm2_2022",
+  "n_cells": 20,
+  "per_outer_f1_all_corrected": {
+    "0": 0.5377,
+    "1": 0.5504,
+    "2": 0.5797,
+    "3": 0.6993,
+    "4": 0.5819
+  },
+  "cv_f1_all_mean_corrected": 0.5897952,
+  "cv_f1_all_std_corrected": 0.0640730190352675,
+  "cv_f1_all_mean_original": 0.57369395,
+  "cv_f1_all_std_original": 0.0687133854162073,
+  "all_cells_sanity_ok": false,
+  "complete": true,
+  "outer_folds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]
+}

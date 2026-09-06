@@ -1,0 +1,30 @@
+{
+  "name": "5cv_esmc6b_plain",
+  "n_cells": 20,
+  "cv_orig_peptides_f1_mean": 0.5004663500000001,
+  "cv_orig_peptides_f1_std": 0.05878162257898934,
+  "cv_orig_propeptides_f1_mean": 0.6095208,
+  "cv_orig_propeptides_f1_std": 0.04114628026679632,
+  "cv_orig_all_f1_mean": 0.567747,
+  "cv_orig_all_f1_std": 0.017170141786506894,
+  "per_outer_orig_all_f1": {
+    "0": 0.5506,
+    "1": 0.5915,
+    "2": 0.5521,
+    "3": 0.5679,
+    "4": 0.5765
+  },
+  "cv_corr_peptides_f1_mean": 0.53026465,
+  "cv_corr_peptides_f1_std": 0.057444499740401576,
+  "cv_corr_propeptides_f1_mean": 0.6224753000000001,
+  "cv_corr_propeptides_f1_std": 0.039552690926313715,
+  "cv_corr_all_f1_mean": 0.5876917500000001,
+  "cv_corr_all_f1_std": 0.01570492633101156,
+  "per_outer_corr_all_f1": {
+    "0": 0.5749,
+    "1": 0.6105,
+    "2": 0.571,
+    "3": 0.5902,
+    "4": 0.5919
+  }
+}

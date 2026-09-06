@@ -1,0 +1,22 @@
+{
+  "outer": 0,
+  "inner": 4,
+  "orig_peptides_precision": 0.527878,
+  "orig_peptides_recall": 0.503863,
+  "orig_peptides_f1": 0.515591,
+  "orig_propeptides_precision": 0.627651,
+  "orig_propeptides_recall": 0.473448,
+  "orig_propeptides_f1": 0.539752,
+  "orig_all_precision": 0.579223,
+  "orig_all_recall": 0.486437,
+  "orig_all_f1": 0.528791,
+  "corr_peptides_precision": 0.570728,
+  "corr_peptides_recall": 0.609075,
+  "corr_peptides_f1": 0.589278,
+  "corr_propeptides_precision": 0.63325,
+  "corr_propeptides_recall": 0.48746,
+  "corr_propeptides_f1": 0.550872,
+  "corr_all_precision": 0.601653,
+  "corr_all_recall": 0.53906,
+  "corr_all_f1": 0.568639
+}

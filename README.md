@@ -242,6 +242,34 @@ optimizer step on a non-finite loss, so numerical trouble in this region is not
 purely hypothetical. Mixed precision remains available in the training loop; it
 is simply not used for anything reported.
 
+## Recomputing the paper's numbers without a GPU
+
+`results/` ships the scores every table and every figure in the paper is built
+from: for each of the nine configurations, the per-tolerance aggregate, the
+per-cell records under both the original and the corrected matcher, and the two
+tolerance-free suites. No model weights, no embeddings, ~3 MB in total.
+
+```
+python3 results/reproduce_paper_numbers.py
+```
+
+prints Table 1 in full, the paired-by-fold effects and their sign counts, the
+interaction contrast, what the corrected matcher changes per run, the per-fold
+base scores behind the fold-exchangeability argument, and the 2022-release
+reproduction. Sections can be run individually (`--table1`, `--effects`,
+`--matcher`, `--folds`, `--reproduction`).
+
+Two things in `results/` are deliberately incomplete, and the script says so
+where it matters. The ESM-C adapter configuration has original-matcher records
+for only part of its grid, so it carries no matcher-comparison aggregate and is
+excluded from that one calculation; its corrected-matcher scores, which are what
+the paper reports, are complete. And the aggregate spread is always across the
+five outer folds rather than across all twenty cells, since four models sharing
+an outer fold share a test set.
+
+Training from scratch is a different matter: one cell is about 10 GPU-hours, a
+configuration 200, and the full grid roughly 1,600. The commands are above.
+
 ## Smoke test / trying it without real data
 
 `tests/synthetic/` contains a tiny, fully synthetic stand-in for the three

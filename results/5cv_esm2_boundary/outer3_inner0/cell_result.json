@@ -1,0 +1,24 @@
+{
+  "outer": 3,
+  "inner": 0,
+  "train_partitions": [
+    1,
+    2,
+    4
+  ],
+  "valid_partitions": [
+    0
+  ],
+  "test_partitions": [
+    3
+  ],
+  "best_epoch": 30,
+  "val_f1_all": 0.6083556287301914,
+  "val_f1_peptides": 0.6651097617935544,
+  "val_f1_propeptides": 0.5636497424576894,
+  "test_f1_all": 0.5532398635846912,
+  "test_f1_peptides": 0.436558094312105,
+  "test_f1_propeptides": 0.6277553554796648,
+  "test_precision_all": 0.6053067993366501,
+  "test_recall_all": 0.5094207955338451
+}

@@ -1,0 +1,24 @@
+{
+  "name": "5cv_esmc6b_full",
+  "n_cells": 20,
+  "per_outer_f1_all_corrected": {
+    "0": 0.6643,
+    "1": 0.6899,
+    "2": 0.643,
+    "3": 0.658,
+    "4": 0.6759
+  },
+  "cv_f1_all_mean_corrected": 0.6662283999999999,
+  "cv_f1_all_std_corrected": 0.017798990870797986,
+  "cv_f1_all_mean_original": 0.64469625,
+  "cv_f1_all_std_original": 0.019045653605219228,
+  "all_cells_sanity_ok": false,
+  "complete": true,
+  "outer_folds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]
+}

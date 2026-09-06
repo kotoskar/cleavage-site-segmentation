@@ -1,0 +1,24 @@
+{
+  "name": "5cv_esmc6b_boundary",
+  "n_cells": 20,
+  "per_outer_f1_all_corrected": {
+    "0": 0.6639,
+    "1": 0.6342,
+    "2": 0.6093,
+    "3": 0.6388,
+    "4": 0.661
+  },
+  "cv_f1_all_mean_corrected": 0.6414384500000001,
+  "cv_f1_all_std_corrected": 0.02222180101654113,
+  "cv_f1_all_mean_original": 0.62618005,
+  "cv_f1_all_std_original": 0.022701882413276888,
+  "all_cells_sanity_ok": false,
+  "complete": true,
+  "outer_folds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]
+}

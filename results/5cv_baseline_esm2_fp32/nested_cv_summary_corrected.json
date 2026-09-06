@@ -1,0 +1,24 @@
+{
+  "name": "5cv_baseline_esm2_fp32",
+  "n_cells": 20,
+  "per_outer_f1_all_corrected": {
+    "0": 0.5719,
+    "1": 0.5993,
+    "2": 0.5297,
+    "3": 0.5761,
+    "4": 0.6036
+  },
+  "cv_f1_all_mean_corrected": 0.5761033999999999,
+  "cv_f1_all_std_corrected": 0.02942429054561042,
+  "cv_f1_all_mean_original": 0.5602952,
+  "cv_f1_all_std_original": 0.031002059265978626,
+  "all_cells_sanity_ok": false,
+  "complete": true,
+  "outer_folds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ]
+}

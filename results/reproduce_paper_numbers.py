@@ -15,8 +15,10 @@ What is here, per configuration:
   <run>/nested_cv_summary_corrected.json  the same F1 under both matchers
   <run>/outer<o>_inner<k>/...             the individual cells those means are
                                           built from, both matchers
-  suites/                                 the tolerance-free IoU sweep and the
-                                          cleavage-site scores
+  suites/                                 the tolerance-free IoU sweep, the
+                                          cleavage-site scores, and the paired
+                                          effects with intervals, split by type,
+                                          annotation evidence and length
 
 Aggregation, everywhere: micro-average inside a cell, mean over the four inner
 cells of an outer fold, then mean and sample standard deviation (ddof=1) over the
@@ -297,6 +299,68 @@ def sites():
     print("  cells that share its outer fold, so divide by four for distinct segments")
 
 
+def _paired_line(emb, k, t3, t0):
+    iv = lambda r: f"[{r['ci95_genus'][0]:+.3f},{r['ci95_genus'][1]:+.3f}]"
+    return (f"{emb:9s} {k:8s} +-3 {t3['mean']:+.4f}+-{t3['sd']:.4f} {iv(t3)} {t3['pos_folds']}/5"
+            f"   exact {t0['mean']:+.4f}+-{t0['sd']:.4f} {iv(t0)} {t0['pos_folds']}/5")
+
+
+def uncertainty():
+    """Paired effects of each addition against its own base, with intervals."""
+    path = os.path.join(HERE, "suites", "review_response_cv.json")
+    if not os.path.exists(path):
+        print("\n(no paired-effect suite in this release)")
+        return
+    d = json.load(open(path))
+    print("\nPaired F1 gain over the base: mean +- SD of the five fold differences,")
+    print("95% bootstrap interval (genera resampled within each outer fold), folds positive")
+    for title, block in (("all test proteins", d["paired"]),
+                         ("test proteins outside the screening comparison", d["untouched"])):
+        print(f"  {title}")
+        for emb in ("ESM-2", "ESM-C 6B"):
+            for k in ("head", "adapter", "both"):
+                r = block[emb][k]
+                print("    " + _paired_line(emb, k, r["tau3_all"], r["tau0_all"]))
+    lows = [d[s][e][k][t]["ci95_genus"][0] for s in ("paired", "untouched") for e in ("ESM-2", "ESM-C 6B")
+            for k in ("head", "adapter", "both") for t in ("tau3_all", "tau0_all")]
+    print(f"  all {len(lows)} intervals exclude zero: {min(lows) > 0}; lowest lower bound {min(lows):+.4f}")
+    print("  intervals cover the sampling of test proteins only: not the training seed,")
+    print("  the draw of training proteins, or the choice of the two candidates")
+    print(f"  smallest two-sided p of an exact Wilcoxon test on five folds: {d['min_p_wilcoxon_n5']:.4f}")
+    print("\nPaired gain at +-3 under the upstream and the corrected matcher")
+    for emb in ("ESM-2", "ESM-C 6B"):
+        for k in ("head", "adapter", "both"):
+            m = d["matcher"][emb][k]
+            print(f"  {emb:9s} {k:8s} original {m['original_mean']:+.4f} ({m['original_pos']}/5)   "
+                  f"corrected {m['corrected_mean']:+.4f} ({m['corrected_pos']}/5)")
+
+
+def breakdown():
+    """The same effects split by segment type, annotation evidence and segment length."""
+    path = os.path.join(HERE, "suites", "review_response_cv.json")
+    if not os.path.exists(path):
+        return
+    d = json.load(open(path))
+    print("\nPaired F1 gain by segment type (folds positive in brackets)")
+    for emb in ("ESM-2", "ESM-C 6B"):
+        for k in ("head", "adapter", "both"):
+            r = d["paired"][emb][k]
+            cells = [r[f"tau{t}_{s}"] for t in (3, 0) for s in ("peptides", "propeptides")]
+            print(f"  {emb:9s} {k:8s} " + "  ".join(f"{c['mean']:+.3f} ({c['pos_folds']})" for c in cells)
+                  + "    [+-3 pep, +-3 prop, exact pep, exact prop]")
+    print("\nRecall of annotated segments at an exact match, by evidence code of the annotation")
+    for emb in ("ESM-2", "ESM-C 6B"):
+        for cls, row in d["evidence"][emb].items():
+            t0 = row["tau0"]
+            print(f"  {emb:9s} {cls:15s} n/fold {row['n_groups_per_fold']:6.0f}  base {t0['recall_base']:.3f}  "
+                  + "  ".join(f"{k} {t0[k]['delta']:+.3f} ({t0[k]['pos_folds']})" for k in ("head", "adapter", "both")))
+    print("\nF1 at +-3 by length of the true segment: base, then change for head / adapter / both")
+    for emb in ("ESM-2", "ESM-C 6B"):
+        for b, row in d["bylength"][emb].items():
+            print(f"  {emb:9s} {b:6s} n/fold {row['n_true_per_fold']:5.0f}  base {row['base']:.3f}  "
+                  + "  ".join(f"{row[k]['delta']:+.3f} ({row[k]['pos_folds']})" for k in ("head", "adapter", "both")))
+
+
 def folds():
     print("\nWhy the folds are not exchangeable")
     v = per_outer(BASE2, 3)
@@ -323,11 +387,11 @@ def reproduction():
 def main():
     ap = argparse.ArgumentParser()
     for name in ("table1", "effects", "tolerance", "overlap", "sites", "matcher",
-                 "cells", "epochs", "folds", "reproduction"):
+                 "cells", "epochs", "folds", "reproduction", "uncertainty", "breakdown"):
         ap.add_argument(f"--{name}", action="store_true")
     args = ap.parse_args()
     order = ["table1", "effects", "tolerance", "overlap", "sites", "matcher",
-             "cells", "epochs", "folds", "reproduction"]
+             "cells", "epochs", "folds", "reproduction", "uncertainty", "breakdown"]
     chosen = [n for n in order if getattr(args, n, False)]
     for name in (chosen or order):
         globals()[name]()

@@ -260,7 +260,10 @@ segment count, what the corrected matcher changes per run, a rebuild of Table 1
 from the individual cells, the per-fold base scores behind the
 fold-exchangeability argument, and the 2022-release reproduction. Sections run
 individually with `--table1`, `--effects`, `--tolerance`, `--overlap`,
-`--sites`, `--matcher`, `--cells`, `--folds`, `--reproduction`.
+`--sites`, `--matcher`, `--cells`, `--folds`, `--reproduction`, `--uncertainty`
+and `--breakdown`. The last two print the paired effects with their bootstrap
+intervals, and the same effects split by segment type, annotation evidence and
+segment length, from `results/suites/review_response_cv.json`.
 
 Each cell directory carries `tolerance_metrics.json`, the corrected matcher's
 counts on that cell's own test fold at every tolerance from exact to +-3.
@@ -297,6 +300,41 @@ set.
 
 Training from scratch is a different matter: one cell is about 10 GPU-hours, a
 configuration 200, and the full grid roughly 1,600. The commands are above.
+
+## Rebuilding the span dumps and the tolerance-free tables
+
+The tolerance-free analyses (the IoU sweep, the placement of each end of a
+segment, the scores by segment length and by segment type, the paired effects
+with intervals, the split by annotation evidence) are computed from *span
+dumps*, not from model weights. For every nested-CV cell,
+`runs/<run>/outer<o>_inner<k>/segments.json.gz` holds the decoded true and
+predicted segments of that cell's test fold. The dumps are not shipped, because
+they come from the trained checkpoints, which are not shipped either. A reader
+who trains the grid writes them with one inference pass per cell, and every step
+after that runs on a CPU in seconds to a minute:
+
+```bash
+# 1. the dumps, plus the per-cell scores at every tolerance (needs the checkpoints)
+python3 analysis/metrics/src/tolerance_sweep_cv.py --models 5cv_esm2_full --device 0
+# 2. everything that reads the dumps (CPU)
+python3 analysis/metrics/src/segment_quality_cv.py    # IoU sweep, paired placement
+python3 analysis/metrics/src/boundary_error_cv.py     # which end of a segment moves
+python3 analysis/metrics/src/bylength_cv.py           # F1 by segment length
+python3 analysis/metrics/src/review_response_cv.py    # paired effects with intervals; by type, evidence, length
+# 3. the LaTeX fragments of the two appendices built from that output
+python3 analysis/metrics/src/generators/paper/tex_review_tables.py
+```
+
+`review_response_cv.py` also reads the processed 2026 data: `labeled_sequences.csv`
+(the organism column gives the genus used for resampling), the GraphPart
+assignment files, and a per-feature table `processed_data/features_master.parquet`
+with the columns `accession`, `label` (`PEPTIDE` or `PROPEP`), `start`, `end`,
+`evidence_codes` (a list of ECO identifiers) and `is_valid_for_training`, which
+the dataset build writes from the UniProt pull and which carries the evidence
+code of each annotated segment. The locations are set with `--runs-dir` and
+`--data-dir`. The output for the paper's runs ships as
+`results/suites/review_response_cv.json`, so the numbers can be inspected
+without any of this.
 
 ## Smoke test / trying it without real data
 

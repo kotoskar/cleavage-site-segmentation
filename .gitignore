@@ -16,3 +16,9 @@ UPLOAD_STEPS.md
 
 # NOTE: tests/synthetic/embeddings/*.pt are deliberately NOT ignored -- they are
 # the tiny synthetic fixtures the smoke test in README.md depends on.
+
+# Credentials -- never commit these (.env.example is the template).
+.env
+.env.*
+!.env.example
+*.secrets

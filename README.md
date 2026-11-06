@@ -83,6 +83,11 @@ sequence. These scripts have their own, heavier dependencies (`esm`,
 API token for hosted inference) that are not required just to train/evaluate
 against already-precomputed embeddings.
 
+The ESM-C 6B script calls a hosted API and needs a personal key (create one at
+https://biohub.ai/developer-console/api-keys). Export it as `BIOHUB_API_KEY` or put it
+in a git-ignored `.env.secrets` file in the repository root (template: `.env.example`).
+The key is never read from the source tree and must never be committed.
+
 ## Running a single training run
 
 ```bash

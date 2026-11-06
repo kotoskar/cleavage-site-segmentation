@@ -9,6 +9,7 @@ from hashlib import md5
 import os
 import argparse
 import pathlib
+from typing import Optional
 
 import torch
 from tqdm.auto import tqdm
@@ -16,6 +17,37 @@ from tqdm.auto import tqdm
 from esm.sdk.forge import ESM3ForgeInferenceClient
 from esm.sdk.api import ESMProtein, LogitsConfig, ESMProteinError
 from tenacity import RetryError
+
+# The API key is never stored in the source. Lookup order: --token, then these environment
+# variables (BIOHUB_API_KEY first; FORGE_TOKEN is the name used before the move to Biohub),
+# then a git-ignored KEY=VALUE file in the repository root.
+API_KEY_ENV_VARS = ("BIOHUB_API_KEY", "ESM_API_KEY", "FORGE_TOKEN")
+SECRETS_FILE = ".env.secrets"
+
+
+def load_secrets_file(path: Optional[pathlib.Path] = None) -> None:
+    """Copy the KEY=VALUE lines of the secrets file into os.environ; variables that are already set win."""
+    path = path or pathlib.Path(__file__).resolve().parents[3] / SECRETS_FILE
+    if not path.is_file():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if line.startswith("export "):
+            line = line[len("export "):]
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+
+
+def resolve_api_key(cli_value: Optional[str] = None) -> Optional[str]:
+    if cli_value:
+        return cli_value
+    load_secrets_file()
+    for name in API_KEY_ENV_VARS:
+        if os.environ.get(name):
+            return os.environ[name]
+    return None
 
 
 def hash_aa_string(string: str) -> str:
@@ -31,7 +63,7 @@ def generate_esmc6b_embeddings(
     max_residues: int = 2048,
 ) -> None:
     if not token:
-        raise ValueError("No Forge token. Pass --token or set FORGE_TOKEN env var.")
+        raise ValueError("No API key. Pass --token, or set BIOHUB_API_KEY in the environment or in the git-ignored .env.secrets file.")
 
     client = ESM3ForgeInferenceClient(model=model_name, url=forge_url, token=token)
 
@@ -144,7 +176,8 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("fasta_file", type=pathlib.Path)
     parser.add_argument("output_dir", type=pathlib.Path)
-    parser.add_argument("--token", default=os.environ.get("FORGE_TOKEN", "***REMOVED***"))
+    parser.add_argument("--token", default=None,
+                        help="API key (default: BIOHUB_API_KEY, ESM_API_KEY or FORGE_TOKEN from the environment or .env.secrets)")
     parser.add_argument("--model", default="esmc-6b-2024-12")
     parser.add_argument("--forge_url", default="https://forge.evolutionaryscale.ai")
     parser.add_argument("--max_residues", type=int, default=2048)
@@ -153,7 +186,7 @@ def main() -> None:
     generate_esmc6b_embeddings(
         fasta_file=args.fasta_file,
         esm_embeddings_dir=args.output_dir,
-        token=args.token,
+        token=resolve_api_key(args.token),
         model_name=args.model,
         forge_url=args.forge_url,
         max_residues=args.max_residues,

@@ -1,5 +1,5 @@
 """
-Generate ESM-C 6B embeddings (per residue) via Forge API and save one .pt file per sequence.
+Generate ESM-C 6B embeddings (per residue) via the Biohub (formerly Forge) API and save one .pt file per sequence.
 Filename is md5 hash of the amino-acid sequence.
 
 If daily credits are exhausted -> prints message and exits (already computed files stay cached).
@@ -59,7 +59,7 @@ def generate_esmc6b_embeddings(
     esm_embeddings_dir: pathlib.Path,
     token: str,
     model_name: str = "esmc-6b-2024-12",
-    forge_url: str = "https://forge.evolutionaryscale.ai",
+    forge_url: str = "https://biohub.ai",
     max_residues: int = 2048,
 ) -> None:
     if not token:
@@ -179,7 +179,7 @@ def main() -> None:
     parser.add_argument("--token", default=None,
                         help="API key (default: BIOHUB_API_KEY, ESM_API_KEY or FORGE_TOKEN from the environment or .env.secrets)")
     parser.add_argument("--model", default="esmc-6b-2024-12")
-    parser.add_argument("--forge_url", default="https://forge.evolutionaryscale.ai")
+    parser.add_argument("--forge_url", default="https://biohub.ai")
     parser.add_argument("--max_residues", type=int, default=2048)
     args = parser.parse_args()
 

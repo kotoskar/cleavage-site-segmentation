@@ -48,13 +48,19 @@ h1, h2, h3, p { margin: 0; }
 .seg.language button { min-width: 30px; padding: 4px 6px; font: 600 .74rem/1.35 var(--mono); }
 .nav a:hover, .footer a:hover { color: var(--mint); }
 .outline-link { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; color: var(--white); font-weight: 650; }
-.hero { display: grid; grid-template-columns: 1.3fr .7fr; gap: clamp(20px, 6vw, 92px); align-items: end; padding-block: clamp(36px, 5vw, 72px) clamp(31px, 4vw, 58px); }
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "title links" "copy links"; gap: clamp(17px, 2vw, 27px) clamp(14px, 4.2vw, 66px); align-items: center; padding-block: clamp(30px, 4vw, 60px) clamp(31px, 4vw, 58px); }
 .kicker { font: 600 .77rem/1.4 var(--mono); letter-spacing: .11em; text-transform: uppercase; color: var(--mint); }
-.hero h1 { font-size: clamp(3.2rem, 6.95vw, 6.7rem); line-height: .94; letter-spacing: -.077em; font-weight: 690; margin-top: 15px; }
+.hero h1 { grid-area: title; font-size: clamp(3.2rem, 8.4vw, 6.7rem); line-height: .94; letter-spacing: -.077em; font-weight: 690; }
 .hero h1 span { display: block; color: var(--mint); }
-.hero-copy { max-width: 390px; padding-bottom: 3px; }
+.hero-copy { grid-area: copy; max-width: 590px; }
 .hero-copy p { color: var(--muted); font-size: clamp(1rem, 1.4vw, 1.18rem); line-height: 1.55; }
 .hero-copy strong { color: var(--white); font-weight: 650; }
+.hero-links { --qr-size: 123px; grid-area: links; display: flex; gap: clamp(10px, 1.3vw, 18px); }
+.hero-link { display: grid; gap: 8px; justify-items: center; width: var(--qr-size); color: var(--muted); font-size: .8rem; font-weight: 650; text-align: center; }
+a.hero-link:hover { color: var(--mint); }
+.hero-qr { display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 9px; overflow: hidden; }
+.hero-qr img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.hero-qr-placeholder { border: 1px dashed #58666e; background: var(--surface); color: var(--quiet); font: 600 .78rem/1 var(--mono); letter-spacing: .11em; }
 .primary { display: inline-flex; align-items: center; gap: 10px; margin-top: 19px; padding: 10px 15px; background: var(--mint); border: 1px solid var(--mint); border-radius: 8px; color: #11241d; font-weight: 760; font-size: 14px; }
 .primary:hover { background: #c0fadb; }
 .play-icon { width: 0; height: 0; border-block: 4.5px solid transparent; border-left: 7px solid currentColor; }
@@ -159,11 +165,11 @@ section { scroll-margin-top: 20px; }
 }
 @media (max-width: 820px) {
   .nav a:not(.outline-link) { display: none; }
+  .hero { grid-template-areas: "title links" "copy copy"; column-gap: 16px; }
+  .hero h1 { font-size: clamp(3.15rem, 9.2vw, 4.35rem); }
+  .hero-links { --qr-size: 102px; }
 }
 @media (max-width: 760px) {
-  .hero { grid-template-columns: 1fr; gap: 21px; }
-  .hero h1 { font-size: clamp(3.15rem, 11vw, 5.4rem); }
-  .hero-copy { max-width: 525px; }
   .graph { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(7, minmax(0, auto)); gap: 19px clamp(22px, 9vw, 64px); padding-block: 20px 22px; }
   .node { grid-column: 1; grid-row: var(--column); padding: 8px 12px; min-height: 59px; }
   .node[data-key="head"] { grid-column: 2; grid-row: 5; min-height: 59px; }
@@ -172,6 +178,10 @@ section { scroll-margin-top: 20px; }
   .detail-actions { justify-self: start; }
   .detail-links { flex-direction: row; flex-wrap: wrap; gap: 12px; }
   .back-to-block { display: block; margin-top: 12px; }
+}
+@media (max-width: 565px) {
+  .hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "copy" "links"; }
+  .hero h1 { font-size: clamp(2.9rem, 11vw, 5rem); }
 }
 @media (max-width: 520px) {
   .shell { padding-inline: 15px; }
@@ -248,13 +258,20 @@ button.class-score:hover { border-color: var(--mint); }
 </header>
 <main class="shell">
   <div class="hero">
-    <div>
-      <p class="kicker" data-ru="Архитектура модели · NeurIPS 2026">Model architecture · NeurIPS 2026 workshop</p>
-      <h1 lang="en">Placement,<span>not coverage.</span></h1>
-    </div>
+    <h1 lang="en">Placement,<span>not coverage.</span></h1>
     <div class="hero-copy">
       <p><span data-ru="Как модель находит пептидные сегменты и уточняет их границы.">How the model finds peptide segments and pinpoints their boundaries.</span> <strong data-ru="Включай и выключай два новых блока">Toggle the two additions</strong> <span data-ru="и проследи, где каждый из них меняет поток данных.">to see where each one changes the data flow.</span></p>
       <button class="primary" id="start" type="button"><span class="play-icon" aria-hidden="true"></span><span data-ru="Пройти по схеме">Walk through the model</span></button>
+    </div>
+    <div class="hero-links">
+      <a class="hero-link" href="https://github.com/kotoskar/cleavage-site-segmentation" target="_blank" rel="noopener">
+        <span class="hero-qr"><img width="328" height="328" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUgAAAFICAAAAAAXfzjvAAAEIklEQVR42u3d227iMBQF0HjU//9l93kkwrnYplWz9lsLBFiypa2E2GNesiP/EIAECVJAggQJUkCCBCkgQYIEKSBBggQpIEGCFJAgQYIUkCBBghSQvyVf0RNG88AzOM4M/l993d3j89D3MSJNbZAgBSRIkHrknh6V7Wl3PW8Ue150nPmh72NEmtogQQpIkCD1yLVeNYPnR71vtd91zzNWv48RaWqDBCkgQYKUXo/sJjpPGF2vvut30XXr7PlJI9LUBikgQYIEKb+zR971uur16eg8ZPX6thFpaoMUkCBBgpTP9MhuL5tBD8w+PoPHq59zGpGmNkgBCRIkSDnaI8eHP1i2V17JXjoPfx8jEiRIkAISJEg98nWfW83qfdjd589D38eIBAkSpIAECfLhGVGviq47Z/tndZ3IqCd2f//Y/fxGpKkNEqSABAlSaj2yfeCgL+5ev3EW3/8K+nG1rxqRpjZIkAISJMiHZdvvI6PzldV1I7PrOo5mD8yuhz6NSFMbJEgBCRKkvKx3u64LV+9jyV6vzvbPXfsuZnuoEWlqgwQpIEGC1CObLwz62lV8vNtjV/vran80Ik1tkCAFJEiQD014Xbu6Pk63V67ua5hd1zy7btBV7JNGpKkNEqSABAlSj6z1wqjXRY9n99fO9rnd9/E4H2lqgwQpIEGClNc16vS+gd3fU2avL2d/F1ntydb9MbVBCkiQIEHK3h75qf1huusFrd6XczXf14g0tUGCFJAgQT4s6d9HzqBPda9jR6+PPtcV9MTu+pFGpKkNUkCCBAlS3tex7Pm9am+8kq/rrg9U7ZOr/zciTW2QIAUkSJDyX9r7a1f3Kdy1H2H3/vFr83GNSFMbJEgBCRKkHlnrWXfXt7vrimd73er16Wh9oGrvNCJNbZAgBSRIkA/P6K6j073eXT0/eOo6+K77xY1IUxskSAEJEuRD81V9wer6kLvWd8zun119X/vZmNogBSRIkCDlTI9cPY8XXXeO3i/qfdHrqj3X+UhTGyRIAQkSpLyuVav3tVTvf64ep9oru/fLdM9fGpGmNkiQAhIkSD3y0Bsk+1q2z1XPO2aft3pfkBFpaoMEKSBBgnxY0uuQV3N3X3T2vunu/TQj+X1279NtRJraIEEKSJAg9cj3va3aO0exT0bve2rfHOtHmtogBSRIkCDlTI+M+la2Z67uy929Dr77d5pGpKkNEqSABAlSj/xMquvzRL1xBMfN9t2R/NvvI01tkCAFJEiQ8jM9ci4+P+qN2ffbva+2EWlqgwQpIEGC1CPP9sHu7w937dud3d9mGJGmNkgBCRIkSNnaI3f1wOpxuvvWRJ87Op77tU1tkAISJEiQ8r7mTQZGJEiQAhIkSJACEiRIAQkSJEgBCRIkSAEJEqSABAkSpIAECRKkgAT5t/INvK34qRVz0jQAAAAASUVORK5CYII=" alt=""></span>
+        <span data-ru="Исходный код">Source code</span>
+      </a>
+      <div class="hero-link">
+        <span class="hero-qr hero-qr-placeholder">TBD</span>
+        <span data-ru="Статья">Paper</span>
+      </div>
     </div>
   </div>
 
@@ -388,7 +405,7 @@ button.class-score:hover { border-color: var(--mint); }
 </main>
 <footer class="footer">
   <div class="shell">
-    <span data-ru="Игорь Шабаров · Татьяна Шашкова">Igor Shabarov · Tatiana Shashkova</span>
+    <span data-ru="Игорь Шабаров, Татьяна Шашкова">Igor Shabarov, Tatiana Shashkova</span>
     <div class="footer-links">
       <a class="repo-link" href="https://github.com/kotoskar/cleavage-site-segmentation" target="_blank" rel="noopener" data-ru="Репозиторий">Repository</a>
       <a id="config-link" href="https://github.com/kotoskar/cleavage-site-segmentation/tree/b432ab189ca169d7eed9c1a042cde6bbb7d6bf48/configs" target="_blank" rel="noopener" data-ru="Конфигурации экспериментов">Experiment configs</a>

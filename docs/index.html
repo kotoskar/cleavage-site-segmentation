@@ -60,7 +60,8 @@ h1, h2, h3, p { margin: 0; }
 a.hero-link:hover { color: var(--mint); }
 .hero-qr { display: grid; place-items: center; width: 100%; aspect-ratio: 1; border-radius: 9px; overflow: hidden; }
 .hero-qr img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
-.hero-qr-placeholder { border: 1px dashed #58666e; background: var(--surface); color: var(--quiet); font: 600 .78rem/1 var(--mono); letter-spacing: .11em; }
+.hero-qr-placeholder { border: 1px dashed #58666e; background: var(--surface); color: var(--muted); font: 650 .85rem/1 var(--mono); }
+.hero-qr-placeholder small { display: block; margin-top: 6px; color: var(--quiet); font-size: .72rem; }
 .primary { display: inline-flex; align-items: center; gap: 10px; margin-top: 19px; padding: 10px 15px; background: var(--mint); border: 1px solid var(--mint); border-radius: 8px; color: #11241d; font-weight: 760; font-size: 14px; }
 .primary:hover { background: #c0fadb; }
 .play-icon { width: 0; height: 0; border-block: 4.5px solid transparent; border-left: 7px solid currentColor; }
@@ -269,7 +270,7 @@ button.class-score:hover { border-color: var(--mint); }
         <span data-ru="Исходный код">Source code</span>
       </a>
       <div class="hero-link">
-        <span class="hero-qr hero-qr-placeholder">TBD</span>
+        <span class="hero-qr hero-qr-placeholder"><span>bioRxiv<small>(TBD)</small></span></span>
         <span data-ru="Статья">Paper</span>
       </div>
     </div>

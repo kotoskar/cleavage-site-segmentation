@@ -405,9 +405,7 @@ def main() -> None:
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Portability fix for the anonymized release: the original script hard-required
-    # CUDA. Mirror the same CPU fallback already used by infer.py's resolve_device()
-    # so this script also runs on machines without a GPU (e.g. for the smoke test).
+    # Use the same CPU fallback as infer.py for inference on machines without CUDA.
     device = f"cuda:{args.device}" if torch.cuda.is_available() else "cpu"
 
     use_amp = bool(args.amp)

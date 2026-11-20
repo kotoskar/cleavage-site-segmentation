@@ -34,8 +34,7 @@ import torch
 
 sys.path.insert(0, str(next(
     p for p in Path(__file__).resolve().parents if (p / "run.py").exists()
-)))  # locate the repo root by its entry point rather than a .git dir, since
-# this anonymized release is deliberately not a git repository
+)))  # Use the entry point to locate the project root in source archives.
 from infer import load_run_args, load_state_dict            # reuse exact config/ckpt loading
 from src.train_loop_crf import get_dataloaders, get_model, run_dataloader
 from src.utils.manuscript_metrics import (

@@ -86,8 +86,7 @@ import pandas as pd
 
 sys.path.insert(0, str(next(
     p for p in Path(__file__).resolve().parents if (p / "run.py").exists()
-)))  # locate the repo root by its entry point rather than a .git dir, since
-# this anonymized release is deliberately not a git repository
+)))  # Use the entry point to locate the project root in source archives.
 
 from src.utils.manuscript_metrics import (
     convert_path_to_peptide_borders,

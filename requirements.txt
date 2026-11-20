@@ -1,4 +1,4 @@
-# NOTE on this file (anonymized release):
+# Notes on the training environment:
 # - This is a pip freeze of the original training environment (Linux + CUDA).
 #   The CPU smoke test for this release was verified against different,
 #   newer versions (torch==2.10.0, numpy==2.2.6, pandas==2.3.3, Python 3.10)

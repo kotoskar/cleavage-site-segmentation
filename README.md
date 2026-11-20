@@ -1,10 +1,11 @@
-# Peptide/propeptide segmentation from frozen protein-language-model embeddings
+# Placement, Not Coverage: Position-Aware CRF Emissions for Proteolytic Segmentation
+
+Igor Shabarov and Tatiana Shashkova
 
 This repository trains and evaluates a sequence-labeling model that finds
 cleaved peptide and propeptide segments inside full-length protein sequences.
-It is an anonymized, minimal, self-contained release for double-blind review:
-code only, no experiment outputs, no real data payload, no author-identifying
-information.
+It includes experiment configurations, per-fold evaluation results, and a
+synthetic dataset for smoke testing.
 
 ## What the code does
 
@@ -43,8 +44,8 @@ frozen pLM embedding  -->  (optional input adapter)  -->  CNN + BiLSTM encoder
 CNN-BiLSTM-CRF with none of the adapter/boundary additions, used as the
 default and as the target of the smoke test below.
 
-This is a derivative of the openly available
-[DeepPeptide](https://github.com/fteufel/DeepPeptide) codebase, extended with
+This project builds on [DeepPeptide](https://github.com/fteufel/DeepPeptide)
+by [Teufel et al. (2023)](https://doi.org/10.1093/bioinformatics/btad616), with
 additional pLM embedding backends (ESM2, ESM-C, ProstT5/3Di), the adapter and
 boundary-head model variants above, and the nested cross-validation tooling
 under `analysis/`.
@@ -104,11 +105,10 @@ test on fold `[4]` (`src/train_loop_crf.py:train()`'s defaults), writing
 and `model.pt` (best-validation checkpoint) to `--out_dir`. See
 `parse_arguments()` in `src/train_loop_crf.py` for every architecture/training
 flag (there are many -- one set per model variant described above).
-[`configs/esm2_base.json`](configs/esm2_base.json) is a complete,
-scrubbed config for the base `lstmcnncrf` model (this is the exact config this
-release's own smoke-training run produced, with paths generalized) -- use it
-as a starting point for `--set key=value` overrides, or as the `--base` for
-the nested-CV driver below.
+[`configs/esm2_base.json`](configs/esm2_base.json) is the configuration from
+the smoke-training run for the base `lstmcnncrf` model, with portable paths.
+Use it as a starting point for `--set key=value` overrides or as the `--base`
+for the nested-CV driver below.
 
 To evaluate a saved checkpoint separately (rather than only the automatic
 end-of-training test pass above):
@@ -366,11 +366,7 @@ key except the input/output paths. `esm2_adapter.json` and `esm2_full.json`,
 for instance, differ only in `boundary_state_scale` (0.0 vs 1.0), which is
 exactly what turns the boundary head off and on.
 
-## Known issues found while preparing this release
-
-These are pre-existing properties/bugs of the research code, not introduced
-by anonymization. They are reported here rather than silently patched, except
-where noted as a portability fix.
+## Known issues and portability fixes
 
 1. **Metric-matching bug in `src/utils/manuscript_metrics.py:get_counts_for_protein`.**
    The outer loop over true segments and the inner loop over predicted
@@ -384,10 +380,8 @@ where noted as a portability fix.
    corrected matcher against this bug; both require real trained checkpoints
    (`runs/<name>/outer*_inner*/model.pt`) that are not part of this release
    and so cannot be exercised by the smoke test -- they are included only as
-   documentation of a methodological detail. **Left unfixed** in
-   `manuscript_metrics.py` itself, deliberately, since changing scoring
-   behavior is a research decision outside the scope of this anonymization
-   pass.
+   documentation of a methodological detail. `manuscript_metrics.py`
+   retains the original scoring behavior used by the training scripts.
 
 2. **`_sample_from_overlapping_peptides` (`src/utils/dataset.py`) assumes every
    protein has at least one peptide or propeptide segment.** A protein with
@@ -399,9 +393,7 @@ where noted as a portability fix.
    more naive version of the synthetic-data generator in this release, which
    did generate zero-segment proteins. The generator was changed to respect
    the same invariant the real dataset has (every protein gets >=1 segment);
-   `src/utils/dataset.py` itself was **left unfixed**, since patching a
-   dataset-loading edge case in the shipped research code is a substantive
-   change beyond anonymization/packaging.
+   `src/utils/dataset.py` still requires at least one segment per protein.
 
 3. **CPU portability (fixed).** `src/train_loop_crf.py:train()` /
    `train_homo_loo()` and `src/infer_and_score.py:main()` originally hard
@@ -455,18 +447,10 @@ where noted as a portability fix.
    documented here instead. Verified by running one cell both ways.
 
 
-## Anonymization
-
-This is a code-only release prepared for double-blind review. It carries no
-author, affiliation, or host-machine information, and no experiment outputs or
-real data. The tree was re-scanned after every edit and again before
-publication.
-
 ## License
 
-The upstream DeepPeptide project is BSD-3-Clause licensed. Its `LICENSE` file
-names an individual copyright holder, so it is omitted here and will be
-restored at camera-ready.
+The code is distributed under the [BSD 3-Clause License](LICENSE) and retains
+the original DeepPeptide copyright notice.
 
 ## Verification (this release)
 

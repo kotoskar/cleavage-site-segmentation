@@ -474,8 +474,7 @@ def train_homo_loo(args, run = None):
     '''
     DEPRECATED
     '''
-    # Portability fix for the anonymized release: fall back to CPU instead of
-    # hard-requiring CUDA (mirrors infer.py's resolve_device()).
+    # Fall back to CPU when CUDA is unavailable, as infer.py does.
     device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
     
     homo_file = os.path.normpath(os.path.join(args.embeddings_dir, '../../protein_id_homo.txt'))
@@ -537,10 +536,7 @@ def train(args, train_partitions: List[int] = [0,1,2], valid_partitions: List[in
     torch.backends.cudnn.allow_tf32 = True
     torch.set_float32_matmul_precision("high")
 
-    # Portability fix for the anonymized release: the original code hard-required
-    # CUDA (`assert torch.cuda.is_available()`), which makes this entry point
-    # impossible to run or smoke-test on a CPU-only machine. Fall back to CPU
-    # instead, mirroring the CPU fallback infer.py's resolve_device() already uses.
+    # Use the same CPU fallback as infer.py for training on machines without CUDA.
     device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
 
     homo_file = os.path.normpath(os.path.join(args.embeddings_dir, '../../protein_id_homo.txt'))

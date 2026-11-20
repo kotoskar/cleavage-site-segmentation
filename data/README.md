@@ -1,11 +1,8 @@
 # Expected data layout
 
-This directory does not ship any real data (the underlying UniProt-derived
-dataset is large and is not part of this minimal, anonymized release). It only
-ships the small preprocessing scripts under `data/preprocessing/` and this
-description of the exact file formats `src/utils/dataset.py` expects, so the
-pipeline can be reproduced against your own data pull, or exercised
-immediately against the tiny synthetic dataset in `tests/synthetic/`
+This directory contains preprocessing scripts and the input formats that
+`src/utils/dataset.py` expects. Supply your own UniProt-derived dataset for
+training, or use the synthetic dataset in `tests/synthetic/` for a smoke test
 (see the top-level README).
 
 At training time you need three things, whose paths are passed to `run.py` /
